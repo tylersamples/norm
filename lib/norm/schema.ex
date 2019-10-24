@@ -26,8 +26,15 @@ defmodule Norm.Schema do
     %Schema{specs: specs}
   end
 
-  def spec(schema, key) do
+  def spec(schema = %Norm.Schema{}, key) do
     schema.specs
+    |> Enum.filter(fn {name, _} -> name == key end)
+    |> Enum.map(fn {_, spec} -> spec end)
+    |> Enum.at(0)
+  end
+
+  def spec(schema = %Norm.Spec.Collection{}, key) do
+    schema.spec
     |> Enum.filter(fn {name, _} -> name == key end)
     |> Enum.map(fn {_, spec} -> spec end)
     |> Enum.at(0)

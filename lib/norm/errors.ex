@@ -66,6 +66,10 @@ defmodule Norm.SpecError do
     "%{\n" <> specs <> "\n" <> pad("}", i * 2)
   end
 
+  defp format(element, _) when is_list(element) do
+    Enum.join(&Enum.each/1)
+  end
+
   defp pad(str, 0), do: str
   defp pad(str, i), do: " " <> pad(str, i - 1)
 end

@@ -69,8 +69,13 @@ defmodule Norm.Spec.Selection do
     alias Norm.Conformer
     alias Norm.Conformer.Conformable
 
-    def conform(%{subset: subset}, input, path) do
-      results =
+    def conform(spec, input, path) when is_list(input) do
+      input
+      |> Enum.with_index()
+      |> Enum.map(fn {element, index} -> Conformable.conform(spec, element, path ++ [index]) end)
+    end
+
+    def conform(%{subset: subset}, input, path) d
         subset
         |> Enum.map(fn {key, spec} ->
           val = Map.get(input, key)
@@ -81,8 +86,23 @@ defmodule Norm.Spec.Selection do
             {key, {:error, [Conformer.error(path ++ [key], input, ":required")]}}
           end
         end)
-        |> Enum.reduce(%{ok: [], error: []}, fn {key, {result, r}}, acc ->
-          Map.put(acc, result, [{key, r} | acc[result]])
+        |> Enum.reduce(%{ok: [], error: []}, fn
+          {key, value}, acc when is_list(value) ->
+            elements =
+              Enum.reduce(value, acc, fn {status, value}, acc ->
+                Map.put(acc, status, [value | acc[status]])
+              end)
+              |> Enum.reduce(acc, fn
+                {status, []}, acc ->
+                 Map.put(acc, status, [])
+                {status, result}, acc ->
+                Map.put(acc, status, Map.put(%{}, key, Enum.reverse(result)))
+              end)
+
+           Map.merge(acc, elements)
+
+          {key, {result, r}}, acc ->
+            Map.put(acc, result, [{key, r} | acc[result]])
         end)
 
       if Enum.any?(results.error) do

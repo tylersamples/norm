@@ -40,6 +40,13 @@ defmodule Norm.SelectionTest do
       assert errors == [%{spec: ":required", input: %{fauxuser: %{age: 31}}, path: [:user]}]
     end
 
+    test "works with a collection of schema" do
+      schema = schema(%{element: coll_of(%{user: user_schema()})})
+      selection = selection(schema, element: [user: [:age]])
+
+      assert %{element: [%{user: %{age: 31}}, %{user: %{age: 14}}]} = conform!(%{element: [%{user: %{age: 31}}, %{user: %{age: 14}}]}, selection)
+    end
+
     test "errors if there are keys that aren't specified in a schema" do
       assert_raise Norm.SpecError, fn ->
         selection(schema(%{age: spec(is_integer())}), [:name])
