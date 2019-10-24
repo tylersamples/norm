@@ -75,7 +75,8 @@ defmodule Norm.Spec.Selection do
       |> Enum.map(fn {element, index} -> Conformable.conform(spec, element, path ++ [index]) end)
     end
 
-    def conform(%{subset: subset}, input, path) d
+    def conform(%{subset: subset}, input, path) do
+      results =
         subset
         |> Enum.map(fn {key, spec} ->
           val = Map.get(input, key)
