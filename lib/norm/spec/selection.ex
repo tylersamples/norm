@@ -89,19 +89,18 @@ defmodule Norm.Spec.Selection do
         end)
         |> Enum.reduce(%{ok: [], error: []}, fn
           {key, value}, acc when is_list(value) ->
-            elements =
-              Enum.reduce(value, acc, fn {status, value}, acc ->
-                Map.put(acc, status, [value | acc[status]])
-              end)
-              |> Enum.reduce(acc, fn
-                {status, []}, acc ->
-                 Map.put(acc, status, [])
-                {status, result}, acc ->
-                Map.put(acc, status, Map.put(%{}, key, Enum.reverse(result)))
-              end)
+            Enum.reduce(value, %{ok: [], error: []}, fn {status, _value}, _acc ->
+              results_with_status =
+                value
+                |> Enum.filter(&match?({^status, _}, &1))
+                |> Keyword.get_values(status)
+                |> case do
+                  result when is_list(result) -> [{key, result}]
+                  [] -> []
+                end
 
-           Map.merge(acc, elements)
-
+              Map.put(acc, status, results_with_status ++ acc[status])
+            end)
           {key, {result, r}}, acc ->
             Map.put(acc, result, [{key, r} | acc[result]])
         end)

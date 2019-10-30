@@ -67,7 +67,7 @@ defmodule Norm.SpecError do
   end
 
   defp format(element, _) when is_list(element) do
-    Enum.join(&Enum.each/1)
+    Enum.each(element, &Enum.join(&1, ", "))
   end
 
   defp pad(str, 0), do: str
